@@ -33,6 +33,7 @@ try:
     from time import sleep
     import os
     import urllib3
+    from urllib.parse import urlparse
 except Exception as e:
     print(e)
     print(c.YELLOW + "\n[" + c.RED + "-" + c.YELLOW + "] ERROR requirements missing try to install the requirements: pip3 install -r requirements.txt" + c.END)
@@ -73,6 +74,21 @@ def banner():
             print(c.BLUE + "Internet connection: " + c.GREEN + "✔" + c.END)
 
     print(c.BLUE + "Target: " + c.GREEN + domain + c.END)
+
+
+# URL Validation Vuln Found From Github
+def is_allowed_url(url, allowed_hosts):
+    """
+    Check if the URL's hostname is in the list of allowed hosts.
+
+    :param url: The full URL to check.
+    :param allowed_hosts: A list of allowed hostnames.
+    :return: True if the URL is allowed, False otherwise.
+    """
+    parsed_url = urlparse(url)
+    hostname = parsed_url.hostname
+    return hostname in allowed_hosts
+
 
 # Argument parser Function
 def parseArgs():
@@ -653,10 +669,25 @@ def findSecretsFromUrl(url):
             r = requests.get(url + js_endpoint, verify=False)
         except:
             pass
-        if "https://maps.googleapis.com/" in r.text:
-            maps_api_key = re.findall(r'src="https://maps.googleapis.com/(.*?)"', r.text)[0]
-            print(c.YELLOW + "\nMaps API key found: " + maps_api_key + c.END)
-            key_counter = 1
+
+        # Define the list of allowed hosts
+        allowed_hosts = ['maps.googleapis.com']
+
+        # Find all URLs in the text
+        urls = re.findall(r'https?://[^\s<>"]+|www\.[^\s<>"]+', r.text)
+
+        # Check each URL to see if its hostname is in the list of allowed hosts
+        for url in urls:
+            parsed_url = urlparse(url)
+            hostname = parsed_url.hostname
+            if hostname in allowed_hosts:
+                # Extract the API key from the URL if the host is allowed
+                maps_api_key_match = re.search(r'https://maps.googleapis.com/maps/api/js\?key=(.*?)&', url)
+                if maps_api_key_match:
+                    maps_api_key = maps_api_key_match.group(1)
+                    print(c.YELLOW + "\nMaps API key found: " + maps_api_key + c.END)
+                    key_counter = 1
+
         try:
             google_api = re.findall(r'AIza[0-9A-Za-z-_]{35}', r.text)[0]
             if google_api:
