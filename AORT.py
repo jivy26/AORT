@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 # AORT - All in One Recon Tool
-# Author: D3Ext
-# Github: https://github.com/D3Ext/AORT
-# Website: https://d3ext.github.io
+# Author: Jivy2 (Retired D3Ext)
+# Github: https://github.com/jivy26/AORT
+
 
 import sys
 
@@ -47,8 +47,8 @@ def banner():
     print('          /     )-"-(     \             ')
     print('         /     ( 6 6 )     \            ')
     print('        /       \ " /       \           ')
-    print('       /         )=(         \    - By D3Ext')
-    print('      /   o   .--"-"--.   o   \         ')
+    print('       /         )=(         \    - Maintained By jivy26')
+    print('      /   o   .--"-"--.   o   \   - Created By D3Ext')
     print('     /    I  /  -   -  \  I    \        ')
     print(' .--(    (_}y/\       /\y{_)    )--.    ')
     print('(    ".___l\/__\_____/__\/l___,"    )   ')
@@ -204,7 +204,7 @@ def axfr(domain):
         ip_answer = dns.resolver.resolve(server.target, 'A')
         for ip in ip_answer:
             try:
-                zone = dns.zone.from_xfr(dns.query.xfr(str(ip), domain))
+                zone = dns.zone.from_xfr(dns.query.xfr(str(ip), domain, timeout=30))
                 for host in zone:
                     print(c.YELLOW + "Found Host: {}".format(host) + c.END)
             except Exception as e:
@@ -216,12 +216,14 @@ def wafDetector(domain):
     """
     Get WAFs list in a file
     """
-    r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/wafsign.json")
-    f = open('wafsign.json', 'w')
-    f.write(r.text)
-    f.close()
+    # Get the absolute path to the directory where the script is located
+    script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    with open('wafsign.json', 'r') as file:
+    # Use os.path.join to construct the path to 'utils/wafsign.json'
+    wafsign_path = os.path.join(script_dir, 'utils', 'wafsign.json')
+
+    # Now you can safely load the file using the absolute path
+    with open(wafsign_path, 'r') as file:
         wafsigns = json.load(file)
 
     print(c.BLUE + "\n[" + c.END + c.GREEN + "+" + c.END + c.BLUE + "] Discovering active WAF on the main web page...\n" + c.END)
@@ -454,12 +456,16 @@ def wayback(domain):
     wayback_content = open(f"{domain_name}-wayback.txt", "r").readlines()
     redirects_file_exists = 1
     # Check if redirects.json parameters file exists
-    if os.path.exists("redirects.json") == False:
-        redirects_file_exists = 0
-        r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/redirects.json")
-        redirects_file = open("redirects.json", "w")
-        redirects_file.write(r.text)
-        redirects_file.close()
+    try:
+        # Directly load the local redirects.json file
+        with open("utils/redirects.json", "r") as file:
+            redirects = json.load(file)
+    except IOError:
+        print("Error opening or reading the file 'utils/redirects.json'.")
+        # Handle the I/O error (e.g., exit the program or log the error)
+    except json.JSONDecodeError:
+        print("Error decoding JSON from the file 'utils/redirects.json'.")
+        # Handle the JSON parsing error (e.g., exit the program or log the error)
 
     redirect_urls = []
     redirects_raw = open("redirects.json")
@@ -484,13 +490,9 @@ def wayback(domain):
     end_info = len(redirect_urls)
     print(c.YELLOW + f"Open Redirects endpoints stored in {domain_name}-redirects.txt ({end_info} endpoints)" + c.END)
 
-    xss_file_exists = 1
-    if os.path.exists("xss.json") == False:
-        xss_file_exists = 0
-        r = requests.get("https://raw.githubusercontent.com/D3Ext/AORT/main/utils/xss.json")
-        xss_file = open("xss.json", "w")
-        xss_file.write(r.text)
-        xss_file.close()
+    # Directly load the local xss.json file
+    with open("utils/xss.json", "r") as file:
+        xss_patterns = json.load(file)
 
     # Filter potential XSS
     xss_urls = []

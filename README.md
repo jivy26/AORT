@@ -19,7 +19,7 @@ To use it just type "**aort**" into your terminal
 
 If you want to install it from source:
 ```sh
-git clone https://github.com/D3Ext/AORT
+git clone https://github.com/jivy26/aort
 cd AORT
 pip3 install -r requirements.txt
 ```
@@ -131,10 +131,5 @@ All DNS queries use **dns-python** at 100%, no **dig** or any extra tool needed
 
 Email harvesting functions is done using **Hunter.io** API with personal token (free signup)
 
-## Extra
 
-**If you consider this project useful, I would really appreciate supporting me by giving this repo a star or buying me a coffee.**
 
-[!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/d3ext)
-
-Copyright © 2022, *D3Ext*
